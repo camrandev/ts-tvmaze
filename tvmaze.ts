@@ -1,15 +1,17 @@
 import axios from "axios";
 import * as $ from "jquery";
 
-const $showsList:  JQuery<HTMLElement> = $("#showsList");
-const $episodesArea:  JQuery<HTMLElement> = $("#episodesArea");
-const $searchForm:  JQuery<HTMLElement> = $("#searchForm");
-const $episodeList:  JQuery<HTMLElement> = $("#episodeList");
+/*jQuery elements */
+const $showsList: JQuery<HTMLElement> = $("#showsList");
+const $episodesArea: JQuery<HTMLElement> = $("#episodesArea");
+const $searchForm: JQuery<HTMLElement> = $("#searchForm");
+const $episodesList: JQuery<HTMLElement> = $("#episodesList");
+const $showEpisodesButton: JQuery<HTMLElement> = $(".Show-getEpisodes");
 
 const DEFAULT_IMAGE_URL: string =
   "https://store-images.s-microsoft.com/image/apps.65316.13510798887490672.6e1ebb25-96c8-4504-b714-1f7cbca3c5ad.f9514a23-1eb8-4916-a18e-99b1a9817d15?mode=scale&q=90&h=300&w=300";
 
-const BASE_URL: string = "http://api.tvmaze.com"
+const BASE_URL: string = "http://api.tvmaze.com";
 
 //set an interface showing what the returned image needs to look like in
 interface imageInterface {
@@ -112,7 +114,9 @@ $searchForm.on("submit", async function (evt) {
  */
 
 async function getEpisodesOfShow(id: number): Promise<episodeInterface[]> {
-  const response: responseObjectInterface = await axios.get(`${BASE_URL}/${id}/episodes}`);
+  const response: responseObjectInterface = await axios.get(
+    `${BASE_URL}/shows/${id}/episodes`
+  );
   response;
 
   const formattedEpisodes: episodeInterface[] = response.data.map((episode) => {
@@ -120,21 +124,37 @@ async function getEpisodesOfShow(id: number): Promise<episodeInterface[]> {
     return { id, name, season, number };
   });
   return formattedEpisodes;
- }
+}
 
 /** Write a clear docstring for this function... */
 
 function populateEpisodes(formattedEpisodes: episodeInterface[]): void {
-
-  $episodeList.empty();
+  $episodesList.empty();
 
   for (let episode of formattedEpisodes) {
     const $episode = $(
       `<li>${episode.name} (${episode.season}, ${episode.number})</li>`
     );
-    $episodeList.append($episode);
+    $episodesList.append($episode);
   }
-
 }
 
-function toggleEpisodesArea():
+// function getShowId(evt) {
+//   const $show: JQuery<HTMLElement> = $(evt.target.closest(".Show"));
+//   const showId: number = $show.data("showId");
+//   const episodes = await getEpisodesOfShow(showId);
+// }
+
+async function handleClick(evt): Promise<void> {
+  const $show: JQuery<HTMLElement> = $(evt.target.closest(".Show"));
+  const showId: number = $show.data("showId");
+  const episodes = await getEpisodesOfShow(showId);
+
+  populateEpisodes(episodes);
+
+  $episodesArea.show();
+  //call the getEpisodesOfShow passing in the data-show-id
+  //call populateEpisodes on result of previous
+}
+
+$showsList.on("click", ".Show-getEpisodes", handleClick);
