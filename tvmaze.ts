@@ -1,12 +1,15 @@
 import axios from "axios";
 import * as $ from "jquery";
 
-const $showsList = $("#showsList");
-const $episodesArea = $("#episodesArea");
-const $searchForm = $("#searchForm");
+const $showsList:  JQuery<HTMLElement> = $("#showsList");
+const $episodesArea:  JQuery<HTMLElement> = $("#episodesArea");
+const $searchForm:  JQuery<HTMLElement> = $("#searchForm");
+const $episodeList:  JQuery<HTMLElement> = $("#episodeList");
 
 const DEFAULT_IMAGE_URL: string =
   "https://store-images.s-microsoft.com/image/apps.65316.13510798887490672.6e1ebb25-96c8-4504-b714-1f7cbca3c5ad.f9514a23-1eb8-4916-a18e-99b1a9817d15?mode=scale&q=90&h=300&w=300";
+
+const BASE_URL: string = "http://api.tvmaze.com"
 
 //set an interface showing what the returned image needs to look like in
 interface imageInterface {
@@ -23,8 +26,15 @@ interface showInterface {
 }
 
 //
-interface dataFromApi {
+interface responseObjectInterface {
   data: any[];
+}
+
+interface episodeInterface {
+  id: number;
+  name: string;
+  season: number;
+  number: number;
 }
 
 /** Given a search term, search for tv shows that match that query.
@@ -36,8 +46,8 @@ interface dataFromApi {
 async function getShowsByTerm(
   term: string | number | string[]
 ): Promise<showInterface[]> {
-  const response: dataFromApi = await axios.get(
-    `https://api.tvmaze.com/search/shows?q=${term}`
+  const response: responseObjectInterface = await axios.get(
+    `${BASE_URL}/search/shows?q=${term}`
   );
 
   //format data for client
@@ -53,7 +63,7 @@ async function getShowsByTerm(
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows) {
+function populateShows(shows: showInterface[]) {
   $showsList.empty();
 
   for (let show of shows) {
@@ -101,8 +111,30 @@ $searchForm.on("submit", async function (evt) {
  *      { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+async function getEpisodesOfShow(id: number): Promise<episodeInterface[]> {
+  const response: responseObjectInterface = await axios.get(`${BASE_URL}/${id}/episodes}`);
+  response;
+
+  const formattedEpisodes: episodeInterface[] = response.data.map((episode) => {
+    let { id, name, season, number } = episode;
+    return { id, name, season, number };
+  });
+  return formattedEpisodes;
+ }
 
 /** Write a clear docstring for this function... */
 
-// function populateEpisodes(episodes) { }
+function populateEpisodes(formattedEpisodes: episodeInterface[]): void {
+
+  $episodeList.empty();
+
+  for (let episode of formattedEpisodes) {
+    const $episode = $(
+      `<li>${episode.name} (${episode.season}, ${episode.number})</li>`
+    );
+    $episodeList.append($episode);
+  }
+
+}
+
+function toggleEpisodesArea():
