@@ -1,31 +1,30 @@
 import axios from "axios";
-import * as $ from 'jquery';
+import * as $ from "jquery";
 
 const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 
+const DEFAULT_IMAGE_URL: string =
+  "https://store-images.s-microsoft.com/image/apps.65316.13510798887490672.6e1ebb25-96c8-4504-b714-1f7cbca3c5ad.f9514a23-1eb8-4916-a18e-99b1a9817d15?mode=scale&q=90&h=300&w=300";
 
 //set an interface showing what the returned image needs to look like in
-//show interface
 interface imageInterface {
-  medium: string
-  original: string
-
+  medium: string;
+  original: string;
 }
 
 //set an interface showing what the returned objects need to look like
 interface showInterface {
-  id: number,
-  name: string,
-  summary: string,
-  image: imageInterface | null
-
+  id: number;
+  name: string;
+  summary: string;
+  image: imageInterface | null;
 }
 
 //
 interface dataFromApi {
-  data: any[]
+  data: any[];
 }
 
 /** Given a search term, search for tv shows that match that query.
@@ -34,37 +33,23 @@ interface dataFromApi {
  *    Each show object should contain exactly: {id, name, summary, image}
  *    (if no image URL given by API, put in a default image URL)
  */
-async function getShowsByTerm(term: string): Promise<showInterface[]>  {
-//endpoint: /search/shows?q=:query
+async function getShowsByTerm(
+  term: string | number | string[]
+): Promise<showInterface[]> {
+  const response: dataFromApi = await axios.get(
+    `https://api.tvmaze.com/search/shows?q=${term}`
+  );
 
-  const response: Promise<dataFromApi> = await axios.get(`https://api.tvmaze.com/search/shows?q=${term}`)
-  console.log("response", response);
-  return response.data;
+  //format data for client
 
+  const formattedShows: showInterface[] = response.data.map((item) => {
+    let { id, name, summary, image } = item.show;
+    image = image ? image.original : DEFAULT_IMAGE_URL;
+    return { id, name, summary, image };
+  });
 
-
-
-
-  // return [
-  //   {
-  //     id: 1767,
-  //     name: "The Bletchley Circle",
-  //     summary:
-  //       `<p><b>The Bletchley Circle</b> follows the journey of four ordinary
-  //          women with extraordinary skills that helped to end World War II.</p>
-  //        <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their
-  //          normal lives, modestly setting aside the part they played in
-  //          producing crucial intelligence, which helped the Allies to victory
-  //          and shortened the war. When Susan discovers a hidden code behind an
-  //          unsolved murder she is met by skepticism from the police. She
-  //          quickly realises she can only begin to crack the murders and bring
-  //          the culprit to justice with her former friends.</p>`,
-  //     image:
-  //         "http://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
-  //   }
-  // ]
+  return formattedShows;
 }
-
 
 /** Given list of shows, create markup for each and to DOM */
 
@@ -73,10 +58,10 @@ function populateShows(shows) {
 
   for (let show of shows) {
     const $show = $(
-        `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
+      `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
+              src="${show.image}"
               alt="Bletchly Circle San Francisco"
               class="w-25 me-3">
            <div class="media-body">
@@ -88,11 +73,12 @@ function populateShows(shows) {
            </div>
          </div>
        </div>
-      `);
+      `
+    );
 
-    $showsList.append($show);  }
+    $showsList.append($show);
+  }
 }
-
 
 /** Handle search form submission: get shows from API and display.
  *    Hide episodes area (that only gets shown if they ask for episodes)
@@ -110,7 +96,6 @@ $searchForm.on("submit", async function (evt) {
   evt.preventDefault();
   await searchForShowAndDisplay();
 });
-
 
 /** Given a show ID, get from API and return (promise) array of episodes:
  *      { id, name, season, number }
