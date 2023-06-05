@@ -12,9 +12,33 @@ const $searchForm = $("#searchForm");
  *    Each show object should contain exactly: {id, name, summary, image}
  *    (if no image URL given by API, put in a default image URL)
  */
+interface imageInterface {
+  medium: string
+  original: string
 
-async function getShowsByTerm(term) {
-  // ADD: Remove placeholder & make request to TVMaze search shows API.
+}
+
+//set an interface showing what the returned objects need to look like
+interface showInterface {
+  id: number,
+  name: string,
+  summary: string,
+  image: imageInterface | null
+
+}
+
+async function getShowsByTerm(term: string): Promise<Array<Object>>  {
+//endpoint: /search/shows?q=:query
+
+  const response: Promise<Array<any>> = await axios.get(`https://api.tvmaze.com/search/shows?q=${term}`)
+
+
+
+
+
+
+
+
   return [
     {
       id: 1767,
