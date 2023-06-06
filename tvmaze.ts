@@ -47,7 +47,7 @@ interface episodeInterface {
  *    (if no image URL given by API, put in a default image URL)
  */
 async function getShowsByTerm(
-  term: string | number | string[]
+  term: string
 ): Promise<showInterface[]> {
   const response: responseObjectInterface = await axios.get(
     `${BASE_URL}/search/shows?q=${term}`
@@ -66,7 +66,7 @@ async function getShowsByTerm(
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows: showInterface[]) {
+function populateShows(shows: showInterface[]): void {
   $showsList.empty();
 
   for (let show of shows) {
@@ -97,15 +97,15 @@ function populateShows(shows: showInterface[]) {
  *    Hide episodes area (that only gets shown if they ask for episodes)
  */
 
-async function searchForShowAndDisplay() {
-  const term = $("#searchForm-term").val();
+async function searchForShowAndDisplay():Promise<void> {
+  const term = $("#searchForm-term").val() as string;
   const shows = await getShowsByTerm(term);
 
   $episodesArea.hide();
   populateShows(shows);
 }
 
-$searchForm.on("submit", async function (evt) {
+$searchForm.on("submit", async function (evt: JQuery.SubmitEvent) {
   evt.preventDefault();
   await searchForShowAndDisplay();
 });
@@ -157,7 +157,7 @@ function populateEpisodes(formattedEpisodes: episodeInterface[]): void {
  * listener so that can click on list of episodes to hide.
 */
 
-async function handleClick(evt): Promise<void> {
+async function handleClick(evt: JQuery.ClickEvent): Promise<void> {
   const $show: JQuery<HTMLElement> = $(evt.target.closest(".Show"));
   const showId: number = $show.data("showId");
   const episodes = await getEpisodesOfShow(showId);
