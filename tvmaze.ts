@@ -13,13 +13,13 @@ const DEFAULT_IMAGE_URL: string =
 
 const BASE_URL: string = "http://api.tvmaze.com";
 
-//set an interface showing what the returned image needs to look like in
+/**set an interface showing what the returned image needs to look like in*/
 interface imageInterface {
   medium: string;
   original: string;
 }
 
-//set an interface showing what the returned objects need to look like
+/**set an interface showing what the returned objects needs to look like*/
 interface showInterface {
   id: number;
   name: string;
@@ -27,11 +27,12 @@ interface showInterface {
   image: imageInterface | null;
 }
 
-//
+/** set an interface of what response object needs to look like */
 interface responseObjectInterface {
   data: any[];
 }
 
+/** set an interface of what episode object needs to look like */
 interface episodeInterface {
   id: number;
   name: string;
@@ -126,7 +127,11 @@ async function getEpisodesOfShow(id: number): Promise<episodeInterface[]> {
   return formattedEpisodes;
 }
 
-/** Write a clear docstring for this function... */
+/**
+ * Takes formattedEpisodes (an array of objects with id, name, season, number)
+ * and returns nothing. Loops through episodes and creates list idems from
+ * data about them, appends to episode list.
+ */
 
 function populateEpisodes(formattedEpisodes: episodeInterface[]): void {
   $episodesList.empty();
@@ -145,6 +150,13 @@ function populateEpisodes(formattedEpisodes: episodeInterface[]): void {
 //   const episodes = await getEpisodesOfShow(showId);
 // }
 
+/**
+ * Takes evt from click and returns a promise. Gets showId from element
+ * displaying data for show and passes to getEpisodesOfShow. Calls
+ * populateEpisodes and changes visibility of episodes area. Adds
+ * listener so that can click on list of episodes to hide.
+*/
+
 async function handleClick(evt): Promise<void> {
   const $show: JQuery<HTMLElement> = $(evt.target.closest(".Show"));
   const showId: number = $show.data("showId");
@@ -152,9 +164,12 @@ async function handleClick(evt): Promise<void> {
 
   populateEpisodes(episodes);
 
+  $episodesArea.appendTo($show);
+  $episodesArea.on("click", function(){
+    $episodesArea.hide()
+  })
   $episodesArea.show();
-  //call the getEpisodesOfShow passing in the data-show-id
-  //call populateEpisodes on result of previous
 }
 
+/** set event handler on div around episodes button */
 $showsList.on("click", ".Show-getEpisodes", handleClick);
